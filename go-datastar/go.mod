@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/CAFxX/httpcompression v0.0.9
 	github.com/a-h/templ v0.3.924
+	github.com/andybalholm/brotli v1.1.0
 	github.com/benbjohnson/hashfs v0.2.2
 	github.com/delaneyj/toolbelt v0.5.1
 	github.com/go-chi/chi/v5 v5.2.2
@@ -15,7 +16,6 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/chewxy/math32 v1.11.1 // indirect
 	github.com/denisbrodbeck/machineid v1.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect

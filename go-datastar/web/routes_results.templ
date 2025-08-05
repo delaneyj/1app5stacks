@@ -2,46 +2,15 @@ package web
 
 import (
 	"fmt"
-	"github.com/delaneyj/toolbelt"
-	"github.com/go-chi/chi/v5"
-	"github.com/starfederation/datastar-go/datastar"
 	"github.com/t3dotgg/1app5stacks/go-datastar/sql/zz"
-	"net/http"
 	"strconv"
-	"zombiezen.com/go/sqlite"
 )
-
-// You can place Go functions directly in templ, but it's often cleaner to
-// define them in a separate file and import them here. Shown below is an example
-
-func setupResultsRoutes(r chi.Router, db *toolbelt.Database) error {
-	r.Route("/results", func(resultsRouter chi.Router) {
-		resultsRouter.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			ResultsPage().Render(r.Context(), w)
-		})
-
-		resultsRouter.Get("/rows", func(w http.ResponseWriter, r *http.Request) {
-			sse := datastar.NewSSE(w, r, datastar.WithCompression())
-			ctx := r.Context()
-			var rows []zz.ResultsRes
-			if err := db.ReadTX(ctx, func(tx *sqlite.Conn) (err error) {
-				rows, err = zz.OnceResults(tx)
-				return err
-			}); err != nil {
-				sse.ConsoleError(err)
-				return
-			}
-			sse.PatchElementTempl(resultRows(rows...))
-		})
-	})
-	return nil
-}
 
 templ ResultsPage() {
 	@Page() {
 		<div
 			class="container mx-auto px-4 py-8 text-white"
-			data-on-load="@get('/results/rows')"
+			data-on-load="@get('/results/stream')"
 		>
 			<div id="results" class="w-full mt-8 flex justify-center">
 				<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24"><rect width="7.33" height="7.33" x="1" y="1" fill="currentColor"><animate id="svgSpinnersBlocksWave0" attributeName="x" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s" values="1;4;1"></animate><animate attributeName="y" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s" values="1;4;1"></animate><animate attributeName="width" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="0;svgSpinnersBlocksWave1.end+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="8.33" y="1" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="1;4;1"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="1" y="8.33" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="1;4;1"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.1s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="15.66" y="1" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="1;4;1"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="8.33" y="8.33" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="1" y="15.66" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="1;4;1"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.2s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="15.66" y="8.33" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="8.33" y="15.66" fill="currentColor"><animate attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="8.33;11.33;8.33"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.3s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect><rect width="7.33" height="7.33" x="15.66" y="15.66" fill="currentColor"><animate id="svgSpinnersBlocksWave1" attributeName="x" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="y" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s" values="15.66;18.66;15.66"></animate><animate attributeName="width" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s" values="7.33;1.33;7.33"></animate><animate attributeName="height" begin="svgSpinnersBlocksWave0.begin+0.4s" dur="0.6s" values="7.33;1.33;7.33"></animate></rect></svg>
@@ -53,24 +22,32 @@ templ ResultsPage() {
 templ resultRows(rows ...zz.ResultsRes) {
 	<div id="results" class="grid gap-4">
 		for i, row := range rows {
-			<div class="flex items-center gap-6 p-6 bg-gray-800/40 rounded-lg shadow hover:shadow-md transition-shadow">
-				<div class="text-2xl font-bold text-gray-400 w-8">
-					#{ strconv.Itoa(i+1) }
-				</div>
-				@pokemonSprite(row.DexId, "w-20 h-20")
-				<div class="flex-grow">
-					<div class="text-gray-400 text-sm">#{ strconv.FormatInt(row.Id, 10) }</div>
-					<h2 class="text-xl font-semibold capitalize">{ row.Name }</h2>
-				</div>
-				<div class="text-right">
-					<div class="text-2xl font-bold text-blue-400">
-						{ fmt.Sprintf("%0.2f%%", float64(row.WinPercentage)/100) }
-					</div>
-					<div class="text-sm text-gray-400">
-						{ fmt.Sprintf("%dW - %dL", row.UpVotes, row.DownVotes) }
-					</div>
-				</div>
-			</div>
+			@resultRow(i, row)
 		}
+	</div>
+}
+
+templ resultRow(position int, row zz.ResultsRes) {
+	<div 
+		id={ fmt.Sprintf("pokemon-%d", row.Id) } 
+		class="flex items-center gap-6 p-6 bg-gray-800/40 rounded-lg shadow hover:shadow-md transition-all duration-500"
+		style={ fmt.Sprintf("order: %d", position) }
+	>
+		<div class="text-2xl font-bold text-gray-400 w-8">
+			#{ strconv.Itoa(position+1) }
+		</div>
+		@pokemonSprite(row.DexId, "w-20 h-20")
+		<div class="flex-grow">
+			<div class="text-gray-400 text-sm">#{ strconv.FormatInt(row.Id, 10) }</div>
+			<h2 class="text-xl font-semibold capitalize">{ row.Name }</h2>
+		</div>
+		<div class="text-right">
+			<div class="text-2xl font-bold text-blue-400">
+				{ fmt.Sprintf("%0.2f%%", float64(row.WinPercentage)/100) }
+			</div>
+			<div class="text-sm text-gray-400">
+				{ fmt.Sprintf("%dW - %dL", row.UpVotes, row.DownVotes) }
+			</div>
+		</div>
 	</div>
 }

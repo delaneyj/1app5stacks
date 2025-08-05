@@ -33,7 +33,7 @@ func New(ctx context.Context) (*toolbelt.Database, error) {
 	if _, err := os.Stat("/app/data"); err == nil {
 		dbPath = "/app/data/pokemon.sqlite"
 	}
-	
+
 	db, err := toolbelt.NewDatabase(ctx, dbPath, migrations)
 	if err != nil {
 		return nil, fmt.Errorf("err creating database: %w", err)
@@ -181,7 +181,7 @@ func FetchMissingSprites(ctx context.Context, db *toolbelt.Database) error {
 	log.Printf("Fetching %d missing sprites...", len(missingIds))
 
 	// Use a worker pool for concurrent fetching
-	const numWorkers = 10
+	const numWorkers = 100
 	jobs := make(chan int64, len(missingIds))
 	errors := make(chan error, len(missingIds))
 

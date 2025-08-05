@@ -19,9 +19,8 @@ type PokemonBattle struct {
 	DownvoteID int64 `json:"downvoteId"`
 }
 
-func setupVoteRoutes(r chi.Router, db *toolbelt.Database) error {
+func setupVoteRoutes(r chi.Router, db *toolbelt.Database, voteEventBus *toolbelt.EventBusAsync[VoteEvent]) error {
 	r.Route("/vote", func(voteRouter chi.Router) {
-
 		randomBattle := func(tx *sqlite.Conn) (left, right *zz.PokemonModel, err error) {
 			res, err := zz.OnceRandomPokemon(tx, 2)
 			if err != nil {
@@ -77,6 +76,11 @@ func setupVoteRoutes(r chi.Router, db *toolbelt.Database) error {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
+			voteEventBus.Emit(r.Context(), VoteEvent{
+				UpvotedID:   battle.UpvoteID,
+				DownvotedID: battle.DownvoteID,
+			})
 
 			sse.PatchElementTempl(voteContainer(left, right))
 		})

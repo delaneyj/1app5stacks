@@ -6,3 +6,40 @@ body {
     @apply bg-gray-950 text-gray-100;
     image-rendering: pixelated;
 }
+
+/* Animate result rows */
+#results > div {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease-in-out,
+                order 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animate new entries */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animate ranking changes */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+#results > div[data-new="true"] {
+    animation: slideIn 0.5s ease-out;
+}
+
+#results > div[data-updated="true"] {
+    animation: pulse 0.3s ease-in-out;
+}
