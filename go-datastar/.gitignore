@@ -1,0 +1,5 @@
+*_templ.go
+.task
+*.sqlite*
+*.log
+*_bin
