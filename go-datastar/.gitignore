@@ -3,3 +3,4 @@
 *.sqlite*
 *.log
 *_bin
+web/static/site.css

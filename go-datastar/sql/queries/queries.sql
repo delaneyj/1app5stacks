@@ -33,3 +33,22 @@ FROM
 WHERE id < 1025
 ) as subquery
 ORDER BY up_votes DESC, win_percentage DESC;
+
+-- name: GetPokemonSprite :one
+SELECT sprite_data, sprite_content_type 
+FROM pokemon 
+WHERE id = @id;
+
+-- name: UpdatePokemonSprite :exec
+UPDATE pokemon 
+SET sprite_data = @sprite_data, 
+    sprite_content_type = @sprite_content_type, 
+    sprite_fetched_at = @sprite_fetched_at 
+WHERE id = @id;
+
+-- name: PokemonWithMissingSprites :many
+SELECT id 
+FROM pokemon 
+WHERE sprite_data IS NULL 
+AND id < 1025
+ORDER BY id;

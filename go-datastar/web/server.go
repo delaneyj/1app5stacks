@@ -38,10 +38,15 @@ func RunBlocking(db *toolbelt.Database, port int) toolbelt.CtxErrFunc {
 		router.Use(middleware.Recoverer, compressionMiddleware)
 		router.Handle("/static/*", hashfs.FileServer(staticSys))
 
+		router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/vote", http.StatusSeeOther)
+		})
+
 		if err := errors.Join(
-			setupHomeRoutes(router, db),
+
 			setupVoteRoutes(router, db),
 			setupResultsRoutes(router, db),
+			setupSpriteRoutes(router, db),
 		); err != nil {
 			return fmt.Errorf("error setting up routes: %w", err)
 		}

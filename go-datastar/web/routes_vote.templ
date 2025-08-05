@@ -6,8 +6,6 @@ import (
 	"strconv"
 )
 
-const pokemonSpriteURLFormat = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png`
-
 templ VotePage(left, right *zz.PokemonModel, ids ...int64) {
 	@Page() {
 		@voteContainer(left, right)
@@ -28,7 +26,7 @@ templ voteContainer(left, right *zz.PokemonModel) {
 templ pokemonFragment(p, other *zz.PokemonModel) {
 	{{
 	idStr := strconv.Itoa(int(p.Id))
-	voteURL := fmt.Sprintf("$upvoteId=%d;$downvoteId=%d;@post('/vote')", p.Id, other.Id)
+	voteURL := fmt.Sprintf("$upvoteId=%d;$downvoteId=%d;@post('/vote',{requestCancellation: 'disabled'})", p.Id, other.Id)
 	}}
 	<div id={ idStr } class="flex flex-col items-center gap-4">
 		@pokemonSprite(p.Id, "w-64 h-64")
@@ -47,7 +45,7 @@ templ pokemonFragment(p, other *zz.PokemonModel) {
 
 templ pokemonSprite(id int64, class string) {
 	<img
-		src={ fmt.Sprintf(pokemonSpriteURLFormat, id) }
+		src={ spriteRoute(id) }
 		alt={ fmt.Sprintf(`Sprite of Pokemon %d`, id) }
 		class={ class }
 	/>

@@ -50,6 +50,13 @@ func New(ctx context.Context) (*toolbelt.Database, error) {
 		}
 	}
 
+	// Fetch missing sprites
+	log.Print("Checking for missing sprites...")
+	if err := FetchMissingSprites(ctx, db); err != nil {
+		// Don't fail startup if sprite fetching fails
+		log.Printf("Warning: Failed to fetch some sprites: %v", err)
+	}
+
 	return db, nil
 }
 
@@ -141,4 +148,111 @@ func RandomResToPokemonModel(p zz.RandomPokemonRes) *zz.PokemonModel {
 		InsertedAt: p.InsertedAt,
 		UpdatedAt:  p.UpdatedAt,
 	}
+}
+
+const PokemonSpriteURLFormat = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png`
+
+func FetchMissingSprites(ctx context.Context, db *toolbelt.Database) error {
+	var missingIds []int64
+	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
+		ids, err := zz.OncePokemonWithMissingSprites(tx)
+		if err != nil {
+			return err
+		}
+		missingIds = ids
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error getting missing sprites: %w", err)
+	}
+
+	if len(missingIds) == 0 {
+		log.Print("All sprites already cached")
+		return nil
+	}
+
+	log.Printf("Fetching %d missing sprites...", len(missingIds))
+
+	// Use a worker pool for concurrent fetching
+	const numWorkers = 10
+	jobs := make(chan int64, len(missingIds))
+	errors := make(chan error, len(missingIds))
+
+	// Start workers
+	for w := 0; w < numWorkers; w++ {
+		go func() {
+			for id := range jobs {
+				if err := fetchAndStoreSprite(ctx, db, id); err != nil {
+					errors <- fmt.Errorf("Pokemon %d: %w", id, err)
+				} else {
+					errors <- nil
+				}
+			}
+		}()
+	}
+
+	// Send all IDs to workers
+	for _, id := range missingIds {
+		jobs <- id
+	}
+	close(jobs)
+
+	// Collect results
+	var failedCount int
+	for i := 0; i < len(missingIds); i++ {
+		if err := <-errors; err != nil {
+			log.Printf("Failed to fetch sprite: %v", err)
+			failedCount++
+		}
+
+		// Progress logging every 50 sprites
+		if (i+1)%50 == 0 {
+			log.Printf("Progress: %d/%d sprites fetched", i+1, len(missingIds))
+		}
+	}
+
+	if failedCount > 0 {
+		log.Printf("Finished fetching sprites. Failed: %d/%d", failedCount, len(missingIds))
+	} else {
+		log.Printf("Successfully fetched all %d sprites", len(missingIds))
+	}
+
+	return nil
+}
+
+func fetchAndStoreSprite(ctx context.Context, db *toolbelt.Database, id int64) error {
+	spriteURL := fmt.Sprintf(PokemonSpriteURLFormat, id)
+	resp, err := http.Get(spriteURL)
+	if err != nil {
+		return fmt.Errorf("failed to fetch: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad status: %d", resp.StatusCode)
+	}
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	if _, err := buf.ReadFrom(resp.Body); err != nil {
+		return fmt.Errorf("failed to read: %w", err)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/png"
+	}
+
+	spriteData := buf.Bytes()
+	now := time.Now().UTC()
+
+	return db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+		params := zz.UpdatePokemonSpriteParams{
+			SpriteData:        &spriteData,
+			SpriteContentType: &contentType,
+			SpriteFetchedAt:   &now,
+			Id:                id,
+		}
+		return zz.OnceUpdatePokemonSprite(tx, params)
+	})
 }
