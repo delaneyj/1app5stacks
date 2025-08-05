@@ -70,6 +70,31 @@ tasks:
     cmds:
       - fuser -k 4321/tcp > /dev/null 2>&1 || true
 
+  docker:
+    desc: Build Docker image
+    cmds:
+      - docker build --network host -t go-datastar-app .
+
+  docker-local:
+    desc: Build Docker image from local binary
+    deps:
+      - upx
+    cmds:
+      - docker build -f Dockerfile.local -t go-datastar-app .
+
+  fly-setup:
+    desc: Setup Fly.io app (first time only)
+    cmds:
+      - fly launch --no-deploy
+      - echo "Creating volume for SQLite database..."
+      - fly volumes create pokemon_data --size 1 --yes
+      - echo "Setup complete! Run 'task fly-deploy' to deploy"
+
+  fly-deploy:
+    desc: Deploy to Fly.io
+    cmds:
+      - fly deploy --build-arg NETWORK=host
+
   default:
     deps:
       - site

@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    network_mode: host
+    volumes:
+      - ./pokemon.sqlite:/app/pokemon.sqlite
+      - ./pokemon.sqlite-shm:/app/pokemon.sqlite-shm
+      - ./pokemon.sqlite-wal:/app/pokemon.sqlite-wal
+    environment:
+      - GO_ENV=production

@@ -10,7 +10,6 @@ const pokemonSpriteURLFormat = `https://raw.githubusercontent.com/PokeAPI/sprite
 
 templ VotePage(left, right *zz.PokemonModel, ids ...int64) {
 	@Page() {
-		<div data-on-load="@get('/prefetch')"></div>
 		@voteContainer(left, right)
 	}
 }

@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Development files
+Taskfile.yml
+README.md
+*.log
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+website_bin
+
+# Node modules (if any exist locally)
+node_modules/
+
+# Test files
+*_test.go
+*.test
+
+# Documentation
+docs/
+*.md

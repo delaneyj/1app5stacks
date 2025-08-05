@@ -21,7 +21,7 @@ func setupResultsRoutes(r chi.Router, db *toolbelt.Database) error {
 		})
 
 		resultsRouter.Get("/rows", func(w http.ResponseWriter, r *http.Request) {
-			sse := datastar.NewSSE(w, r)
+			sse := datastar.NewSSE(w, r, datastar.WithCompression())
 			ctx := r.Context()
 			var rows []zz.ResultsRes
 			if err := db.ReadTX(ctx, func(tx *sqlite.Conn) (err error) {

@@ -53,7 +53,7 @@ func setupVoteRoutes(r chi.Router, db *toolbelt.Database) error {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			sse := datastar.NewSSE(w, r)
+			sse := datastar.NewSSE(w, r, datastar.WithCompression())
 
 			now := time.Now()
 			var left, right *zz.PokemonModel
