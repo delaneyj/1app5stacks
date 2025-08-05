@@ -69,14 +69,17 @@ WORKDIR /app
 # Copy the binary from go-builder
 COPY --from=go-builder /app/website_bin .
 
-# Copy any other necessary files (like SQLite database if needed)
-# Note: In production, the database will be in /app/data via Fly.io volume
-COPY pokemon.sqlite* ./ 
-RUN mkdir -p /app/data && \
-    if [ -f pokemon.sqlite ]; then cp pokemon.sqlite /app/data/; fi
+# Create data directory for SQLite database
+RUN mkdir -p /app/data
 
-# Expose the port (adjust if needed based on your app)
-EXPOSE 4321
+# Set working directory for database
+WORKDIR /app/data
+
+# The port is configured via PORT env variable in fly.toml
+EXPOSE 8080
+
+# Change back to app directory
+WORKDIR /app
 
 # Run the binary
 CMD ["./website_bin"]

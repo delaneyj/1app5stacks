@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/t3dotgg/1app5stacks/go-datastar/sql"
 	"github.com/t3dotgg/1app5stacks/go-datastar/web"
 )
-
-const port = 4321
 
 func main() {
 	ctx := context.Background()
@@ -19,6 +19,16 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	// Get port from environment variable, default to 4321
+	port := 4321
+	if portStr := os.Getenv("PORT"); portStr != "" {
+		if p, err := strconv.Atoi(portStr); err == nil {
+			port = p
+		}
+	}
+
+	log.Printf("Starting server on port %d", port)
+
 	db, err := sql.New(ctx)
 	if err != nil {
 		return fmt.Errorf("error creating database: %w", err)
@@ -26,5 +36,4 @@ func run(ctx context.Context) error {
 	defer db.Close()
 
 	return web.RunBlocking(db, port)(ctx)
-
 }

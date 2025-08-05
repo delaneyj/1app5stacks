@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"embed"
@@ -26,7 +27,14 @@ func New(ctx context.Context) (*toolbelt.Database, error) {
 		return nil, fmt.Errorf("err creating migrations: %w", err)
 	}
 
-	db, err := toolbelt.NewDatabase(ctx, "pokemon.sqlite", migrations)
+	// Use /app/data/pokemon.sqlite in production (Fly.io volume)
+	// or local pokemon.sqlite in development
+	dbPath := "pokemon.sqlite"
+	if _, err := os.Stat("/app/data"); err == nil {
+		dbPath = "/app/data/pokemon.sqlite"
+	}
+	
+	db, err := toolbelt.NewDatabase(ctx, dbPath, migrations)
 	if err != nil {
 		return nil, fmt.Errorf("err creating database: %w", err)
 	}
